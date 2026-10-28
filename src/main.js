@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { Car } from './car.js';
 import { buildWorld } from './world.js';
+import { Traffic } from './traffic.js';
+import { Minimap } from './minimap.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -15,6 +17,8 @@ const camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.1, 80
 
 buildWorld(scene);
 const car = new Car(scene);
+const traffic = new Traffic(scene);
+const minimap = new Minimap();
 
 const keys = {};
 let camMode = 0;
@@ -32,6 +36,7 @@ const camPos = new THREE.Vector3();
 function loop() {
   const dt = Math.min(clock.getDelta(), 0.05);
   car.update(dt, keys);
+  traffic.update(dt, car);
 
   const fwd = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
   const target = camMode === 0
@@ -42,6 +47,7 @@ function loop() {
   camera.lookAt(car.pos.clone().addScaledVector(fwd, camMode === 0 ? 4 : 20).add(new THREE.Vector3(0, 1.2, 0)));
 
   spd.textContent = Math.round(Math.abs(car.speed) * 3.6);
+  minimap.draw(car, traffic);
   renderer.render(scene, camera);
   requestAnimationFrame(loop);
 }
